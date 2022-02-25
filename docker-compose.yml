@@ -1,0 +1,55 @@
+version: "3.8"
+
+volumes:
+  php_logs:
+
+services:
+
+  nginx:
+    build: nginx
+    container_name: nginx_container
+    hostname: nginx_server
+    ports:
+      - "3000:80"
+    depends_on:
+      - app_node
+      - app_php
+    networks:
+      - network
+
+  app_node:
+    build: node
+    container_name: app_node_container
+    hostname: app_node_server
+    volumes:
+      - ./src/app/node/books_ui:/app
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    #tty: true
+    command: [sh, -c, npm install && npm start]
+    networks:
+      - network
+
+  # TODO:php側でCMD実行する場合にコンテナ終了となるので別コンテナ対応
+  app_php_composer:
+    container_name: app_php_composer_container
+    image: composer
+    volumes:
+      - ./src/app/php/books_api:/app
+      - php_logs:/app/storage/logs
+    command: [sh, -c,  composer install --ignore-platform-reqs && chmod -R 777 /app/storage/logs]
+    
+  app_php:
+    build: php
+    container_name: app_php_container
+    hostname: app_php_server
+    volumes:
+      - ./src/app/php/books_api:/app
+      - php_logs:/app/storage/logs
+    depends_on:
+      - app_php_composer
+    networks:
+      - network
+
+networks:
+  network:

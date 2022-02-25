@@ -1,0 +1,7 @@
+FROM node:alpine 
+
+WORKDIR /app
+
+RUN chown -R node:node /app
+
+USER node
