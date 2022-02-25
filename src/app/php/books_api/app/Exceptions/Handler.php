@@ -49,6 +49,10 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        if ($exception instanceof SearchException) {
+            return response()->json(['error' => ['message' => $exception->getMessage(), 'code' => 500]], 500);
+        }
+
         return parent::render($request, $exception);
     }
 }
